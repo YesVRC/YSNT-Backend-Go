@@ -94,7 +94,7 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request) {
 
 func GetDiscordOAuth(code string) (*DiscordAuth, error) {
 	httpClient := &http.Client{}
-	body := strings.NewReader(fmt.Sprintf("grant_type=authorization_code&code=%s&redirect_uri=%s", code, "http://localhost:8080/auth/discord/redirect"))
+	body := strings.NewReader(fmt.Sprintf("grant_type=authorization_code&code=%s&redirect_uri=%s", code, os.Getenv("DISCORD_AUTH_REDIRECT_URL")))
 	req, err := http.NewRequest(http.MethodPost, "https://discord.com/api/v10/oauth2/token", body)
 	if err != nil {
 		return nil, err
