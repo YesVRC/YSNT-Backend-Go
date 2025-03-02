@@ -2,12 +2,12 @@ package main
 
 import (
 	_ "embed"
-	"encoding/json"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
 	"go-backend-discord/commands"
-	"go-backend-discord/models"
+	"go-backend-discord/modules/database"
+	"go-backend-discord/modules/routes"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"net/http"
@@ -16,8 +16,6 @@ import (
 
 var dg *discordgo.Session
 var s *http.ServeMux
-
-var db *gorm.DB
 
 func init() {
 	var err error
@@ -37,12 +35,12 @@ func init() {
 		panic(err)
 	}
 
-	db, err = gorm.Open(sqlite.Open("./sqlite/main.db"), &gorm.Config{})
+	database.Db, err = gorm.Open(sqlite.Open("./sqlite/main.db"), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
 
-	db.AutoMigrate(&models.User{})
+	database.Db.AutoMigrate(&database.User{}, &database.Session{}, &database.PlatformConnection{})
 
 }
 func main() {
@@ -56,9 +54,8 @@ func main() {
 	defer dg.Close()
 
 	s.HandleFunc("GET /user", UserHandler)
-	s.HandleFunc("POST /users", CreateUserHandler)
-	s.HandleFunc("GET /users/all", GetAllUsersHandler)
-	s.HandleFunc("DELETE /users/delete/empty", DeleteUserEmptyHandler)
+
+	RegisterRoutes(s, routes.AuthRoutes)
 	err = http.ListenAndServe(":8080", s)
 	if err != nil {
 		return
@@ -79,82 +76,12 @@ func interactHandler(session *discordgo.Session, i *discordgo.InteractionCreate)
 	commands.Registry.GetHandlers()[data.Name](session, i, commands.ParseOptions(data.Options))
 }
 
-func UserHandler(w http.ResponseWriter, r *http.Request) {
-	var id = r.URL.Query().Get("id")
-	if id == "" {
-		id = "179031614683217920"
-	}
-	if dg == nil {
-		fmt.Println("dg is nil")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	user, err := dg.User(id)
-	if err != nil {
-		fmt.Println("error getting user,", err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-	data, derr := json.Marshal(user)
-	if derr != nil {
-		fmt.Println("error marshalling user,", derr)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
-}
-
-func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	var user = models.User{
-		Username: r.Form.Get("username"),
-		Email:    r.Form.Get("email"),
-	}
-
-	db.Create(&user)
-	var created models.User
-
-	err := db.Find(&created, user.ID).Error
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-	data, derr := json.Marshal(created)
-	if derr != nil {
-		fmt.Println("error marshalling user,", derr)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
-}
-
-func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
-	var users []models.User
-	err := db.Find(&users).Error
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	data, err := json.Marshal(users)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
-}
-
-func DeleteUserEmptyHandler(w http.ResponseWriter, r *http.Request) {
-	var users []models.User
-	err := db.Find(&users).Error
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	for _, user := range users {
-		if user.Username == "" {
-			err := db.Delete(&user, user.ID).Error
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-			}
+func RegisterRoutes(s *http.ServeMux, routes []routes.Route) {
+	for _, route := range routes {
+		final := route.Handler
+		for _, middleware := range route.Middleware {
+			final = middleware(final)
 		}
+		s.Handle(route.Path, final)
 	}
-	w.WriteHeader(http.StatusOK)
 }
