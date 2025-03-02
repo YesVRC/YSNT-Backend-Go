@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 
 git pull
 go build .
