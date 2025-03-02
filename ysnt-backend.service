@@ -1,0 +1,14 @@
+﻿[Unit]
+Description=YSNT Backend
+After=network.target
+
+[Service]
+Type=simple
+Restart=on-failure
+WorkingDirectory=/usr/ysnt-backend
+ExecStartPre=/usr/bin/git pull
+ExecStartPre=/usr/bin/go build
+ExecStart=/usr/ysnt-backend/backend_go
+
+[Install]
+WantedBy=multi-user.target
