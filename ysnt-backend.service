@@ -7,7 +7,7 @@ Type=simple
 Restart=on-failure
 WorkingDirectory=/usr/ysnt-backend
 ExecStartPre=/bin/bash /usr/ysnt-backend/update.sh
-ExecStart=/usr/ysnt-backend/backend-go
+ExecStart=/usr/ysnt-backend/go-backend-discord
 
 [Install]
 WantedBy=multi-user.target
