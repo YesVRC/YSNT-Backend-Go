@@ -6,8 +6,8 @@ After=network.target
 Type=simple
 Restart=on-failure
 WorkingDirectory=/usr/ysnt-backend
-#ExecStartPre=/bin/bash /usr/ysnt-backend/update.sh
-ExecStart=/usr/ysnt-backend/backend_go
+ExecStartPre=/bin/bash /usr/ysnt-backend/update.sh
+ExecStart=/usr/ysnt-backend/backend-go
 
 [Install]
 WantedBy=multi-user.target
