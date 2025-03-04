@@ -18,10 +18,5 @@ var PublishRoute = Route{
 }
 
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		fmt.Println(err)
-	}
-	println(r.Form)
-	http.Redirect(w, r, "rtmp://ysnt.live/live/test-redirect", http.StatusFound)
+	http.Redirect(w, r, "test-redirect", http.StatusFound)
 }
