@@ -46,7 +46,6 @@ func init() {
 func main() {
 	dg.AddHandler(interactHandler)
 
-	//dg.AddHandler()
 	err := dg.Open()
 	if err != nil {
 		fmt.Println("error opening connection,", err)
@@ -56,6 +55,7 @@ func main() {
 	s.HandleFunc("GET /user", UserHandler)
 
 	RegisterRoutes(s, routes.AuthRoutes)
+	RegisterRoutes(s, routes.LiveRoutes)
 	err = http.ListenAndServe(":8080", s)
 	if err != nil {
 		return
