@@ -1,4 +1,4 @@
-﻿package commands
+package commands
 
 import (
 	"github.com/bwmarrin/discordgo"
@@ -52,6 +52,7 @@ func UserSearchHandler(s *discordgo.Session, i *discordgo.InteractionCreate, opt
 				Content: "Error getting member",
 			},
 		})
+		return
 	}
 
 	ts, terr := discordgo.SnowflakeTimestamp(user.ID)
@@ -62,6 +63,7 @@ func UserSearchHandler(s *discordgo.Session, i *discordgo.InteractionCreate, opt
 				Content: "Error getting timestamp",
 			},
 		})
+		return
 	}
 
 	embed := &discordgo.MessageEmbed{
@@ -74,7 +76,7 @@ func UserSearchHandler(s *discordgo.Session, i *discordgo.InteractionCreate, opt
 		Fields: []*discordgo.MessageEmbedField{
 			{
 				Name:   "ID",
-				Value:  id,
+				Value:  user.ID,
 				Inline: true,
 			},
 			{
