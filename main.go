@@ -8,10 +8,12 @@ import (
 	"go-backend-discord/commands"
 	"go-backend-discord/modules/database"
 	"go-backend-discord/modules/routes"
+	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"net/http"
 	"os"
+	"strings"
 )
 
 var dg *discordgo.Session
@@ -34,8 +36,17 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
-	database.Db, err = gorm.Open(sqlite.Open("./sqlite/main.db"), &gorm.Config{})
+	dbUrl := os.Getenv("DATABASE_URL")
+	var db gorm.Dialector
+	if strings.Contains(dbUrl, "postgres") {
+		db = postgres.Open(dbUrl)
+	} else {
+		db = sqlite.Open(dbUrl)
+	}
+	if db == nil {
+		panic("failed to connect to database - none specified: " + dbUrl)
+	}
+	database.Db, err = gorm.Open(db, &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
