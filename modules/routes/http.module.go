@@ -8,6 +8,7 @@ import (
 	e "go-backend-discord/modules/errors"
 	"log"
 	"net/http"
+	"os"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -63,8 +64,10 @@ func SessionAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			e.AuthError(err, w)
 			return
 		}
-		data, _ := json.Marshal(session)
-		println(data)
+		if os.Getenv("DEBUG") == "true" {
+			data, _ := json.Marshal(session)
+			println(string(data))
+		}
 		newContext := context.WithValue(r.Context(), "user", session.User)
 		next(w, r.WithContext(newContext))
 	}

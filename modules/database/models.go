@@ -2,7 +2,6 @@ package database
 
 import (
 	"gorm.io/gorm"
-	"time"
 )
 
 type Platform string
@@ -32,10 +31,10 @@ type Session struct {
 type PlatformConnection struct {
 	gorm.Model
 	Platform     Platform
-	PlatformID   string `gorm:"unique;not null"`
+	PlatformID   string
 	User         User
-	UserID       uint64
-	AccessToken  string    `gorm:"unique;not null"`
-	RefreshToken string    `gorm:"unique;not null"`
-	LoggedInAt   time.Time `gorm:"not null"`
+	UserID       uint
+	AccessToken  string `gorm:"unique;not null"`
+	RefreshToken string `gorm:"unique;not null"`
+	ExpiresIn    uint   `gorm:"not null"`
 }
